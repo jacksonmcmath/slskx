@@ -8,7 +8,7 @@ defmodule SLSKX.Application do
   def start(_type, _args) do
     children = [
       SLSKXWeb.Telemetry,
-      # SLSKX.Repo,
+      SLSKX.Repo,
       {DNSCluster, query: Application.get_env(:slskx, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: SLSKX.PubSub},
       # Start a worker by calling: SLSKX.Worker.start_link(arg)
