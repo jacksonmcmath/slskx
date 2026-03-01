@@ -1,5 +1,16 @@
 import Config
 
+config :slskx,
+  soulseek_username: "slskx",
+  soulseek_password: "slskx",
+  soulseek_server_host: "soulfind",
+  soulseek_server_port: 2242,
+  slskx_username: "slskx",
+  slskx_password: "slskx",
+  share_directories: [],
+  complete_directory: "./downloads",
+  incomplete_directory: "./incomplete"
+
 # Configure your database
 #
 # The MIX_TEST_PARTITION environment variable can be used
@@ -16,7 +27,7 @@ config :slskx, SLSKX.Repo,
 # We don't run a server during test. If one is required,
 # you can enable the server option below.
 config :slskx, SLSKXWeb.Endpoint,
-  http: [ip: {127, 0, 0, 1}, port: 4002],
+  http: [ip: :loopback, port: 4002],
   secret_key_base: "BFqgyjvWxhxHpj5FzCG5ueaq+yf4+zz0pVbFJbH7j6IkvRpdZEFF51C6016uUVr6",
   server: false
 

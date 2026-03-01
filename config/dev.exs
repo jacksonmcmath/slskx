@@ -1,5 +1,16 @@
 import Config
 
+config :slskx,
+  soulseek_username: "slskx",
+  soulseek_password: "slskx",
+  soulseek_server_host: "soulfind",
+  soulseek_server_port: 2242,
+  slskx_username: "slskx",
+  slskx_password: "slskx",
+  share_directories: [],
+  complete_directory: "./downloads",
+  incomplete_directory: "./incomplete"
+
 # Configure your database
 config :slskx, SLSKX.Repo,
   username: "postgres",
@@ -17,9 +28,7 @@ config :slskx, SLSKX.Repo,
 # watchers to your application. For example, we can use it
 # to bundle .js and .css sources.
 config :slskx, SLSKXWeb.Endpoint,
-  # Binding to loopback ipv4 address prevents access from other machines.
-  # Change to `ip: {0, 0, 0, 0}` to allow access from other machines.
-  http: [ip: {127, 0, 0, 1}],
+  http: [ip: :loopback],
   check_origin: false,
   code_reloader: true,
   debug_errors: true,

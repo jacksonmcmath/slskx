@@ -20,50 +20,81 @@ if System.get_env("PHX_SERVER") do
   config :slskx, SLSKXWeb.Endpoint, server: true
 end
 
-config :slskx, SLSKXWeb.Endpoint, http: [port: String.to_integer(System.get_env("PORT", "4000"))]
+http_port = System.get_env("SLSKX_HTTP_PORT", "4080") |> String.to_integer()
+https_port = System.get_env("SLSKX_HTTPS_PORT", "4443") |> String.to_integer()
+
+config :slskx, SLSKXWeb.Endpoint,
+  http: [port: http_port]
 
 if config_env() == :prod do
-  database_url =
-    System.get_env("DATABASE_URL") ||
-      raise """
-      environment variable DATABASE_URL is missing.
-      For example: ecto://USER:PASS@HOST/DATABASE
-      """
+  soulseek_username = System.get_env("SOULSEEK_USERNAME") || raise("environment variable SOULSEEK_USERNAME must be set.")
+  soulseek_password = System.get_env("SOULSEEK_PASSWORD") || raise("environment variable SOULSEEK_PASSWORD must be set.")
+  soulseek_server_host = System.get_env("SOULSEEK_SERVER_HOST", "vps.slsknet.org")
+  soulseek_server_port = System.get_env("SOULSEEK_SERVER_PORT", "2271") |> String.to_integer()
 
-  maybe_ipv6 = if System.get_env("ECTO_IPV6") in ~w(true 1), do: [:inet6], else: []
+  slskx_username = System.get_env("SLSKX_USERNAME")
+  slskx_password = System.get_env("SLSKX_PASSWORD")
+  shared_directories = System.get_env("SHARED_DIRECTORIES", "") |> String.split(",", trim: true)
+  complete_directory = System.get_env("COMPLETE_DIRECTORY", "/downloads")
+  incomplete_directory = System.get_env("INCOMPLETE_DIRECTORY", "/incomplete")
+
+  config :slskx,
+    soulseek_username: soulseek_username,
+    soulseek_password: soulseek_password,
+    soulseek_server_host: soulseek_server_host,
+    soulseek_server_port: soulseek_server_port,
+    share_directories: shared_directories,
+    complete_directory: complete_directory,
+    incomplete_directory: incomplete_directory,
+    slskx_username: slskx_username,
+    slskx_password: slskx_password
+
+  database_username = System.get_env("DATABASE_USERNAME", "slskx")
+  database_password = System.get_env("DATABASE_PASSWORD", "slskx")
+  database_host = System.get_env("DATABASE_HOST", "postgres")
+  database_port = System.get_env("DATABASE_PORT", "5432") |> String.to_integer()
+  database_name = System.get_env("DATABASE_NAME", "slskx")
+  database_pool_size = System.get_env("DATABASE_POOL_SIZE", "10") |> String.to_integer()
+
+  database_url =
+    System.get_env(
+      "DATABASE_URL",
+      "ecto://#{database_username}:#{database_password}@#{database_host}:#{database_port}/#{database_name}"
+    )
+
+  maybe_ipv6 = if System.get_env("DATABASE_IPV6") in ~w(true 1), do: [:inet6], else: []
 
   config :slskx, SLSKX.Repo,
     # ssl: true,
     url: database_url,
-    pool_size: String.to_integer(System.get_env("POOL_SIZE") || "10"),
+    pool_size: database_pool_size,
     # For machines with several cores, consider starting multiple pools of `pool_size`
     # pool_count: 4,
     socket_options: maybe_ipv6
 
+  # used for node discovery for DNS based cluster discovery
+  config :slskx, :dns_cluster_query, System.get_env("DNS_CLUSTER_QUERY")
+
   # The secret key base is used to sign/encrypt cookies and other secrets.
-  # A default value is used in config/dev.exs and config/test.exs but you
-  # want to use a different value for prod and you most likely don't want
-  # to check this value into version control, so we use an environment
-  # variable instead.
   secret_key_base =
-    System.get_env("SECRET_KEY_BASE") ||
+    System.get_env("SLSKX_SECRET_KEY_BASE") ||
       raise """
-      environment variable SECRET_KEY_BASE is missing.
+      environment variable SLSKX_SECRET_KEY_BASE is missing.
       You can generate one by calling: mix phx.gen.secret
       """
 
-  host = System.get_env("PHX_HOST") || "example.com"
-
-  config :slskx, :dns_cluster_query, System.get_env("DNS_CLUSTER_QUERY")
-
   config :slskx, SLSKXWeb.Endpoint,
-    url: [host: host, port: 443, scheme: "https"],
-    http: [
-      # Enable IPv6 and bind on all interfaces.
-      # Set it to  {0, 0, 0, 0, 0, 0, 0, 1} for local network only access.
-      # See the documentation on https://hexdocs.pm/bandit/Bandit.html#t:options/0
-      # for details about using IPv6 vs IPv4 and loopback vs public addresses.
-      ip: {0, 0, 0, 0, 0, 0, 0, 0}
+    url: [
+      host: System.get_env("SLSKX_HOSTNAME", "localhost"),
+      port: System.get_env("HTTPS_LISTEN_PORT", "4443") |> String.to_integer(),
+      scheme: "https"
+    ],
+    # See the documentation on https://hexdocs.pm/bandit/Bandit.html#t:options/0
+    http: [ ip: :any ],
+    https: [
+      ip: :any,
+      port: System.get_env("HTTPS_LISTEN_PORT", "4443") |> String.to_integer(),
+      scheme: :https
     ],
     secret_key_base: secret_key_base
 
