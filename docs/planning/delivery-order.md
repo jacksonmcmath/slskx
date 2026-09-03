@@ -12,7 +12,7 @@ GitHub stories #8–14 need acceptance criteria before implementation. They must
 
 ## Epic 3 — Server Connection and Session
 
-Add the supervised server socket, login, framing dispatch, keepalive, bounded exponential reconnect, `Relogged` terminal state, connection event telemetry, message counters, and a configurable inbound peer listener. Use a test transport; the production socket module is the only real transport.
+Add the supervised server socket, login, framing dispatch, keepalive, bounded exponential reconnect, `Relogged` terminal state, connection event telemetry, message counters, and a configurable inbound peer listener. Test it against a local TCP test server; do not add a transport abstraction until a second real transport exists.
 
 ## Epic 4 — Search and Remote Browse
 
